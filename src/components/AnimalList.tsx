@@ -1,10 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import apiClient from '../api/client';
 import AnimalCard from './AnimalCard';
 
+interface Animal {
+  id: number;
+  name: string;
+  typeAnimal: {
+    name: string;
+  };
+  gender: string;
+  age: number;
+  animalStatus: {
+    name: string;
+  };
+  description: string;
+  photo: string;
+}
+
 const AnimalList: React.FC = () => {
-  const [animals, setAnimals] = useState<any[]>([]);
+  const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -24,17 +39,56 @@ const AnimalList: React.FC = () => {
     fetchAnimals();
   }, []);
 
-  if (loading) return <Typography>Загрузка...</Typography>;
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Typography variant="h6">Загрузка данных о животных...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Typography color="error" variant="h6">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Grid container spacing={2}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: 'repeat(2, 1fr)',
+          md: 'repeat(3, 1fr)',
+          lg: 'repeat(4, 1fr)'
+        },
+        gap: 3,
+        padding: 3,
+        maxWidth: '100%',
+        boxSizing: 'border-box'
+      }}
+    >
       {animals.map((animal) => (
-        <Grid item key={animal.id} xs={12} sm={6} md={4}>
+        <Box
+          key={animal.id}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            '&:hover': {
+              transform: 'scale(1.02)',
+              transition: 'transform 0.3s ease'
+            }
+          }}
+        >
           <AnimalCard animal={animal} />
-        </Grid>
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 };
 
