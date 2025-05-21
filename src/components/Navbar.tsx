@@ -18,6 +18,14 @@ const Navbar: React.FC = () => {
         <Button color="inherit" component={Link} to="/shelter-info">
           О приюте
         </Button>
+        <Button 
+          color="inherit" 
+          component={Link} 
+          to="/register"
+          sx={{ ml: 2, border: '1px solid white' }}
+        >
+          Регистрация
+        </Button>
       </Toolbar>
     </AppBar>
   );

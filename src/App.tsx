@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import AnimalsPage from './pages/AnimalsPage';
 import ShelterInfoPage from './pages/ShelterInfoPage';
+import RegisterPage from './pages/RegisterPage'; // Добавьте этот импорт
 import { CssBaseline, Container } from '@mui/material';
 
 const App: React.FC = () => {
@@ -16,6 +17,7 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/animals" element={<AnimalsPage />} />
           <Route path="/shelter-info" element={<ShelterInfoPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </Container>
     </Router>
