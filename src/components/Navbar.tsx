@@ -1,12 +1,14 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, useTheme, Avatar, Box, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import PersonIcon from '@mui/icons-material/Person';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const theme = useTheme();
+  const { isAuthenticated, userLogin, logout } = useAuth();
 
-  // Функция для определения активной кнопки
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -61,22 +63,49 @@ const Navbar: React.FC = () => {
           О приюте
         </Button>
         
-        <Button 
-          component={Link} 
-          to="/register"
-          sx={{
-            ml: 2,
-            border: '1px solid',
-            borderColor: isActive('/register') ? theme.palette.primary.main : 'inherit',
-            backgroundColor: isActive('/register') ? theme.palette.primary.main : 'transparent',
-            color: isActive('/register') ? theme.palette.primary.contrastText : 'inherit',
-            '&:hover': {
-              backgroundColor: isActive('/register') ? theme.palette.primary.dark : theme.palette.action.hover
-            }
-          }}
-        >
-          Регистрация
-        </Button>
+        {!isAuthenticated ? (
+          <Button 
+            component={Link} 
+            to="/register"
+            sx={{
+              ml: 2,
+              border: '1px solid',
+              borderColor: isActive('/register') ? theme.palette.primary.main : 'inherit',
+              backgroundColor: isActive('/register') ? theme.palette.primary.main : 'transparent',
+              color: isActive('/register') ? theme.palette.primary.contrastText : 'inherit',
+              '&:hover': {
+                backgroundColor: isActive('/register') ? theme.palette.primary.dark : theme.palette.action.hover
+              }
+            }}
+          >
+            Регистрация
+          </Button>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+            <IconButton color="inherit">
+              <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.secondary.main }}>
+                <PersonIcon fontSize="small" />
+              </Avatar>
+            </IconButton>
+            <Typography variant="body1" sx={{ mx: 1 }}>
+              {userLogin}
+            </Typography>
+            <Button 
+              color="inherit"
+              onClick={logout}
+              sx={{
+                border: '1px solid',
+                borderColor: theme.palette.error.main,
+                '&:hover': {
+                  backgroundColor: theme.palette.error.dark,
+                  color: theme.palette.error.contrastText
+                }
+              }}
+            >
+              Выход
+            </Button>
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );

@@ -104,7 +104,7 @@ const RegisterPage: React.FC = () => {
         phone: formData.phone,
         login: formData.login,
         password: formData.password,
-        roleId: 3 // Роль "Клиент" (согласно вашему ТЗ)
+        roleId: 1
       };
       
       await apiClient.post('/Users', userData);
