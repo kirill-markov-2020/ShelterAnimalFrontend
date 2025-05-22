@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, useTheme, Avatar, Box, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, useTheme, Avatar, Box, IconButton, Fade, Zoom } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PersonIcon from '@mui/icons-material/Person';
@@ -12,74 +12,90 @@ const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ background: 'linear-gradient(90deg, #6a11cb 0%, #2575fc 100%)' }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontFamily: 'Montserrat, sans-serif', fontWeight: 'bold' }}>
           Приют для животных
         </Typography>
-        
-        <Button 
-          color="inherit" 
-          component={Link} 
-          to="/"
-          sx={{
-            backgroundColor: isActive('/') ? theme.palette.background.paper : 'inherit',
-            color: isActive('/') ? theme.palette.text.primary : 'inherit',
-            '&:hover': {
-              backgroundColor: isActive('/') ? theme.palette.action.selected : theme.palette.action.hover
-            }
-          }}
-        >
-          Главная
-        </Button>
-        
-        <Button 
-          color="inherit" 
-          component={Link} 
-          to="/animals"
-          sx={{
-            backgroundColor: isActive('/animals') ? theme.palette.background.paper : 'inherit',
-            color: isActive('/animals') ? theme.palette.text.primary : 'inherit',
-            '&:hover': {
-              backgroundColor: isActive('/animals') ? theme.palette.action.selected : theme.palette.action.hover
-            }
-          }}
-        >
-          Животные
-        </Button>
-        
-        <Button 
-          color="inherit" 
-          component={Link} 
-          to="/shelter-info"
-          sx={{
-            backgroundColor: isActive('/shelter-info') ? theme.palette.background.paper : 'inherit',
-            color: isActive('/shelter-info') ? theme.palette.text.primary : 'inherit',
-            '&:hover': {
-              backgroundColor: isActive('/shelter-info') ? theme.palette.action.selected : theme.palette.action.hover
-            }
-          }}
-        >
-          О приюте
-        </Button>
-        
-        {!isAuthenticated ? (
-          <Button 
-            component={Link} 
-            to="/register"
+
+        <Zoom in={true} style={{ transitionDelay: '100ms' }}>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/"
             sx={{
-              ml: 2,
-              border: '1px solid',
-              borderColor: isActive('/register') ? theme.palette.primary.main : 'inherit',
-              backgroundColor: isActive('/register') ? theme.palette.primary.main : 'transparent',
-              color: isActive('/register') ? theme.palette.primary.contrastText : 'inherit',
+              backgroundColor: isActive('/') ? theme.palette.background.paper : 'inherit',
+              color: isActive('/') ? theme.palette.text.primary : 'inherit',
               '&:hover': {
-                backgroundColor: isActive('/register') ? theme.palette.primary.dark : theme.palette.action.hover
-              }
+                backgroundColor: isActive('/') ? theme.palette.action.selected : theme.palette.action.hover,
+                transform: 'scale(1.1)',
+              },
+              transition: 'transform 0.3s ease',
             }}
           >
-            Регистрация
+            Главная
           </Button>
+        </Zoom>
+
+        <Zoom in={true} style={{ transitionDelay: '200ms' }}>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/animals"
+            sx={{
+              backgroundColor: isActive('/animals') ? theme.palette.background.paper : 'inherit',
+              color: isActive('/animals') ? theme.palette.text.primary : 'inherit',
+              '&:hover': {
+                backgroundColor: isActive('/animals') ? theme.palette.action.selected : theme.palette.action.hover,
+                transform: 'scale(1.1)',
+              },
+              transition: 'transform 0.3s ease',
+            }}
+          >
+            Животные
+          </Button>
+        </Zoom>
+
+        <Zoom in={true} style={{ transitionDelay: '300ms' }}>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/shelter-info"
+            sx={{
+              backgroundColor: isActive('/shelter-info') ? theme.palette.background.paper : 'inherit',
+              color: isActive('/shelter-info') ? theme.palette.text.primary : 'inherit',
+              '&:hover': {
+                backgroundColor: isActive('/shelter-info') ? theme.palette.action.selected : theme.palette.action.hover,
+                transform: 'scale(1.1)',
+              },
+              transition: 'transform 0.3s ease',
+            }}
+          >
+            О приюте
+          </Button>
+        </Zoom>
+
+        {!isAuthenticated ? (
+          <Zoom in={true} style={{ transitionDelay: '400ms' }}>
+            <Button
+              component={Link}
+              to="/register"
+              sx={{
+                ml: 2,
+                border: '1px solid',
+                borderColor: isActive('/register') ? theme.palette.primary.main : 'inherit',
+                backgroundColor: isActive('/register') ? theme.palette.primary.main : 'transparent',
+                color: isActive('/register') ? theme.palette.primary.contrastText : 'inherit',
+                '&:hover': {
+                  backgroundColor: isActive('/register') ? theme.palette.primary.dark : theme.palette.action.hover,
+                  transform: 'scale(1.1)',
+                },
+                transition: 'transform 0.3s ease',
+              }}
+            >
+              Регистрация
+            </Button>
+          </Zoom>
         ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
             <IconButton color="inherit">
@@ -90,7 +106,7 @@ const Navbar: React.FC = () => {
             <Typography variant="body1" sx={{ mx: 1 }}>
               {userLogin}
             </Typography>
-            <Button 
+            <Button
               color="inherit"
               onClick={logout}
               sx={{
@@ -98,8 +114,10 @@ const Navbar: React.FC = () => {
                 borderColor: theme.palette.error.main,
                 '&:hover': {
                   backgroundColor: theme.palette.error.dark,
-                  color: theme.palette.error.contrastText
-                }
+                  color: theme.palette.error.contrastText,
+                  transform: 'scale(1.1)',
+                },
+                transition: 'transform 0.3s ease',
               }}
             >
               Выход
