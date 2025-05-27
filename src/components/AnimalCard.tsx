@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Chip } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Chip, Button } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
 
 interface AnimalCardProps {
   animal: {
@@ -16,9 +17,18 @@ interface AnimalCardProps {
     description: string;
     photo: string;
   };
+  onAdopt?: (animalId: number) => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
+  const { isAuthenticated } = useAuth();
+
+  const handleAdopt = () => {
+    if (onAdopt) {
+      onAdopt(animal.id);
+    }
+  };
+
   return (
     <Card sx={{ maxWidth: 345, margin: 2 }}>
       <CardMedia
@@ -43,13 +53,23 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
         <Chip
           label={animal.animalStatus.name}
           color={
-            animal.animalStatus.name === 'Готов к усыновлению' ? 'success' : 'default'
+            animal.animalStatus.name === 'Готов к усыновлению' 
+              ? 'success' 
+              : 'default'
           }
           sx={{ marginTop: 1 }}
         />
-        <Typography variant="body2" color="text.secondary" sx={{ marginTop: 1 }}>
-          {animal.description}
-        </Typography>
+        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ marginTop: 2 }}
+            onClick={handleAdopt}
+          >
+            Усыновить
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
