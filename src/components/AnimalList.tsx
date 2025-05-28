@@ -10,7 +10,7 @@ const AnimalList: React.FC = () => {
   const [error, setError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
 
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -36,16 +36,32 @@ const AnimalList: React.FC = () => {
         return;
       }
 
-      // Отправляем запрос на усыновление
+      
       await apiClient.post('/Adoptions', { animalId });
       setSnackbarMessage('Заявка на усыновление отправлена!');
       setSnackbarOpen(true);
-      
-      // Обновляем список животных
+
+     
       const response = await apiClient.get('/Animals');
       setAnimals(response.data);
     } catch (error) {
       setSnackbarMessage('Ошибка при отправке заявки');
+      setSnackbarOpen(true);
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (animalId: number) => {
+    try {
+      await apiClient.delete(`/Animals/${animalId}`);
+      setSnackbarMessage('Животное успешно удалено');
+      setSnackbarOpen(true);
+
+    
+      const response = await apiClient.get('/Animals');
+      setAnimals(response.data);
+    } catch (error) {
+      setSnackbarMessage('Ошибка при удалении животного');
       setSnackbarOpen(true);
       console.error(error);
     }
@@ -75,21 +91,22 @@ const AnimalList: React.FC = () => {
         }}
       >
         {animals.map((animal) => (
-          <AnimalCard 
-            key={animal.id} 
-            animal={animal} 
+          <AnimalCard
+            key={animal.id}
+            animal={animal}
             onAdopt={handleAdopt}
+            onDelete={userRole === 'Администратор' ? handleDelete : undefined}
           />
         ))}
       </Box>
-      
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
       >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
           severity="success"
           sx={{ width: '100%' }}
         >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Chip, Button } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Chip, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 
 interface AnimalCardProps {
@@ -18,15 +18,32 @@ interface AnimalCardProps {
     photo: string;
   };
   onAdopt?: (animalId: number) => void;
+  onDelete?: (animalId: number) => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
-  const { isAuthenticated } = useAuth();
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) => {
+  const { isAuthenticated, userRole } = useAuth();
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   const handleAdopt = () => {
     if (onAdopt) {
       onAdopt(animal.id);
     }
+  };
+
+  const handleDelete = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(animal.id);
+    }
+    setOpenDialog(false);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
   };
 
   return (
@@ -53,13 +70,13 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
         <Chip
           label={animal.animalStatus.name}
           color={
-            animal.animalStatus.name === 'Готов к усыновлению' 
-              ? 'success' 
+            animal.animalStatus.name === 'Готов к усыновлению'
+              ? 'success'
               : 'default'
           }
           sx={{ marginTop: 1 }}
         />
-        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (
+        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (userRole === 'Клиент' || userRole === 'Волонтер') && (
           <Button
             variant="contained"
             color="primary"
@@ -70,7 +87,39 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
             Усыновить
           </Button>
         )}
+        {isAuthenticated && userRole === 'Администратор' && (
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            sx={{ marginTop: 2 }}
+            onClick={handleDelete}
+          >
+            Удалить
+          </Button>
+        )}
       </CardContent>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Подтверждение удаления"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Вы уверены, что хотите удалить это животное?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Отмена
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };
