@@ -78,6 +78,21 @@ const AnimalList: React.FC = () => {
     setAddAnimalFormOpen(false);
   };
 
+  const handleAnimalAdded = () => {
+    // Обновляем список животных после добавления
+    const fetchAnimals = async () => {
+      try {
+        const response = await apiClient.get('/Animals');
+        setAnimals(response.data);
+      } catch (err) {
+        setError('Ошибка при загрузке данных о животных');
+        console.error(err);
+      }
+    };
+
+    fetchAnimals();
+  };
+
   if (loading) {
     return <Typography>Загрузка...</Typography>;
   }
@@ -135,7 +150,7 @@ const AnimalList: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      <AddAnimalForm open={addAnimalFormOpen} onClose={handleCloseAddAnimalForm} />
+      <AddAnimalForm open={addAnimalFormOpen} onClose={handleCloseAddAnimalForm} onAnimalAdded={handleAnimalAdded} />
     </>
   );
 };

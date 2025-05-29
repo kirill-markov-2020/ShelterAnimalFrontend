@@ -11,16 +11,19 @@ import {
   CircularProgress,
   Slider,
   Box,
-  Typography
+  Typography,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import apiClient from '../api/client';
 
 interface AddAnimalFormProps {
   open: boolean;
   onClose: () => void;
+  onAnimalAdded: () => void;
 }
 
-const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
+const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAdded }) => {
   const [animal, setAnimal] = useState({
     name: '',
     typeAnimalId: '',
@@ -35,15 +38,15 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
   const [animalStatuses, setAnimalStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState<File | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const typeAnimalsResponse = await apiClient.get('/TypeAnimal');
         const animalStatusesResponse = await apiClient.get('/AnimalStatus');
-
-        console.log('TypeAnimals:', typeAnimalsResponse.data);
-        console.log('AnimalStatuses:', animalStatusesResponse.data);
 
         setTypeAnimals(typeAnimalsResponse.data);
         setAnimalStatuses(animalStatusesResponse.data);
@@ -73,37 +76,86 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
 
-  try {
-    let photoPath = 'http://localhost:5164/images/заглушка.png';
+    if (!animal.name.trim()) newErrors.name = 'Имя обязательно';
+    if (!animal.typeAnimalId) newErrors.typeAnimalId = 'Тип животного обязателен';
+    if (!animal.animalStatusId) newErrors.animalStatusId = 'Статус животного обязателен';
 
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const uploadResponse = await apiClient.post('/FileUpload/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      photoPath = `http://localhost:5164${uploadResponse.data.filePath}`;
+    if (animal.age) {
+      const age = parseInt(animal.age, 10);
+      if (isNaN(age)) {
+        newErrors.age = 'Возраст должен быть числом';
+      } else if (age > 100) {
+        newErrors.age = 'Возраст не может быть больше 100';
+      }
+    } else {
+      newErrors.age = 'Возраст обязателен';
     }
 
-    const animalData = {
-      ...animal,
-      photo: photoPath,
-    };
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    await apiClient.post('/Animals', animalData);
-    onClose();
-  } catch (err) {
-    console.error('Error adding animal:', err);
-  }
-};
+  const resetForm = () => {
+    setAnimal({
+      name: '',
+      typeAnimalId: '',
+      gender: 'Мужской',
+      age: '',
+      animalStatusId: '',
+      description: '',
+      photo: '',
+    });
+    setFile(null);
+    setErrors({});
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      let photoPath = 'http://localhost:5164/images/заглушка.png';
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadResponse = await apiClient.post('/FileUpload/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        photoPath = `http://localhost:5164${uploadResponse.data.filePath}`;
+      }
+
+      const animalData = {
+        ...animal,
+        photo: photoPath,
+      };
+
+      await apiClient.post('/Animals', animalData);
+      setSnackbarMessage('Животное успешно добавлено!');
+      setSnackbarOpen(true);
+      resetForm();
+      onAnimalAdded();
+      onClose();
+    } catch (err) {
+      console.error('Error adding animal:', err);
+      setSnackbarMessage('Ошибка при добавлении животного');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
 
   if (loading) {
     return <CircularProgress />;
@@ -123,6 +175,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
             fullWidth
             value={animal.name}
             onChange={handleChange}
+            error={!!errors.name}
           />
           <TextField
             margin="dense"
@@ -132,6 +185,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
             fullWidth
             value={animal.typeAnimalId}
             onChange={handleChange}
+            error={!!errors.typeAnimalId}
+            helperText={errors.typeAnimalId}
           >
             {typeAnimals.map((type) => (
               <MenuItem key={type.id} value={type.id}>
@@ -184,6 +239,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
             fullWidth
             value={animal.age}
             onChange={handleChange}
+            error={!!errors.age}
+            helperText={errors.age}
           />
           <TextField
             margin="dense"
@@ -193,6 +250,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
             fullWidth
             value={animal.animalStatusId}
             onChange={handleChange}
+            error={!!errors.animalStatusId}
+            helperText={errors.animalStatusId}
           >
             {animalStatuses.map((status) => (
               <MenuItem key={status.id} value={status.id}>
@@ -222,6 +281,15 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose }) => {
           Добавить
         </Button>
       </DialogActions>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('Ошибка') ? "error" : "success"} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };
