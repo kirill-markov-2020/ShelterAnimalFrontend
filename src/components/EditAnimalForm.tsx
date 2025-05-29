@@ -1,4 +1,4 @@
-// src/components/AddAnimalForm.tsx
+// src/components/EditAnimalForm.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -19,21 +19,30 @@ import {
 } from '@mui/material';
 import apiClient from '../api/client';
 
-interface AddAnimalFormProps {
+interface EditAnimalFormProps {
   open: boolean;
   onClose: () => void;
-  onAnimalAdded: () => void;
+  animal: {
+    id: number;
+    name: string;
+    typeAnimalId: number;
+    gender: string;
+    age: number;
+    animalStatusId: number;
+    description: string;
+    photo: string;
+  };
 }
 
-const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAdded }) => {
-  const [animal, setAnimal] = useState({
-    name: '',
-    typeAnimalId: '',
-    gender: 'Мужской',
-    age: '',
-    animalStatusId: '',
-    description: '',
-    photo: '',
+const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }) => {
+  const [editedAnimal, setEditedAnimal] = useState({
+    name: animal.name,
+    typeAnimalId: animal.typeAnimalId,
+    gender: animal.gender,
+    age: animal.age,
+    animalStatusId: animal.animalStatusId,
+    description: animal.description,
+    photo: animal.photo,
   });
 
   const [typeAnimals, setTypeAnimals] = useState<any[]>([]);
@@ -64,12 +73,12 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setAnimal(prev => ({ ...prev, [name]: value }));
+    setEditedAnimal(prev => ({ ...prev, [name]: value }));
   };
 
   const handleGenderChange = (event: Event, newValue: number | number[]) => {
     const genderValue = newValue === 0 ? 'Мужской' : 'Женский';
-    setAnimal(prev => ({ ...prev, gender: genderValue }));
+    setEditedAnimal(prev => ({ ...prev, gender: genderValue }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,81 +87,17 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
     }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!animal.name.trim()) newErrors.name = 'Имя обязательно';
-    if (!animal.typeAnimalId) newErrors.typeAnimalId = 'Тип животного обязателен';
-    if (!animal.animalStatusId) newErrors.animalStatusId = 'Статус животного обязателен';
-
-    if (animal.age) {
-      const age = parseInt(animal.age, 10);
-      if (isNaN(age)) {
-        newErrors.age = 'Возраст должен быть числом';
-      } else if (age > 100) {
-        newErrors.age = 'Возраст не может быть больше 100';
-      }
-    } else {
-      newErrors.age = 'Возраст обязателен';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const resetForm = () => {
-    setAnimal({
-      name: '',
-      typeAnimalId: '',
-      gender: 'Мужской',
-      age: '',
-      animalStatusId: '',
-      description: '',
-      photo: '',
-    });
+  const handleDeletePhoto = () => {
     setFile(null);
-    setErrors({});
+    setEditedAnimal(prev => ({ ...prev, photo: 'http://localhost:5164/images/заглушка.png' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      let photoPath = 'http://localhost:5164/images/заглушка.png';
-
-      if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const uploadResponse = await apiClient.post('/FileUpload/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        photoPath = `http://localhost:5164${uploadResponse.data.filePath}`;
-      }
-
-      const animalData = {
-        ...animal,
-        photo: photoPath,
-      };
-
-      await apiClient.post('/Animals', animalData);
-      setSnackbarMessage('Животное успешно добавлено!');
-      setSnackbarOpen(true);
-      resetForm();
-      onAnimalAdded();
-      onClose();
-    } catch (err) {
-      console.error('Error adding animal:', err);
-      setSnackbarMessage('Ошибка при добавлении животного');
-      setSnackbarOpen(true);
-    }
+    // Здесь будет логика отправки измененных данных на сервер
+    console.log(editedAnimal);
+    onClose();
   };
 
   const handleCloseSnackbar = () => {
@@ -165,7 +110,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Добавить новое животное</DialogTitle>
+      <DialogTitle>Редактировать данные о животном</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <TextField
@@ -175,9 +120,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
             label="Имя"
             type="text"
             fullWidth
-            value={animal.name}
+            value={editedAnimal.name}
             onChange={handleChange}
-            error={!!errors.name}
           />
           <TextField
             margin="dense"
@@ -185,10 +129,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
             label="Тип животного"
             select
             fullWidth
-            value={animal.typeAnimalId}
+            value={editedAnimal.typeAnimalId}
             onChange={handleChange}
-            error={!!errors.typeAnimalId}
-            helperText={errors.typeAnimalId}
           >
             {typeAnimals.map((type) => (
               <MenuItem key={type.id} value={type.id}>
@@ -199,7 +141,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
           <Box sx={{ margin: '16px 0', px: 2 }}>
             <Typography gutterBottom>Пол</Typography>
             <Slider
-              value={animal.gender === 'Мужской' ? 0 : 1}
+              value={editedAnimal.gender === 'Мужской' ? 0 : 1}
               onChange={handleGenderChange}
               aria-labelledby="gender-slider"
               step={1}
@@ -216,18 +158,18 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
               min={0}
               max={1}
               sx={{
-                color: animal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
+                color: editedAnimal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
                 '& .MuiSlider-markLabel': {
                   fontSize: '1.5rem',
                 },
                 '& .MuiSlider-thumb': {
-                  backgroundColor: animal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
+                  backgroundColor: editedAnimal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
                 },
                 '& .MuiSlider-track': {
-                  backgroundColor: animal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
+                  backgroundColor: editedAnimal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
                 },
                 '& .MuiSlider-rail': {
-                  backgroundColor: animal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
+                  backgroundColor: editedAnimal.gender === 'Мужской' ? '#1976d2' : '#d81b60',
                   opacity: 0.5,
                 },
               }}
@@ -239,10 +181,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
             label="Возраст"
             type="number"
             fullWidth
-            value={animal.age}
+            value={editedAnimal.age}
             onChange={handleChange}
-            error={!!errors.age}
-            helperText={errors.age}
           />
           <TextField
             margin="dense"
@@ -250,10 +190,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
             label="Статус животного"
             select
             fullWidth
-            value={animal.animalStatusId}
+            value={editedAnimal.animalStatusId}
             onChange={handleChange}
-            error={!!errors.animalStatusId}
-            helperText={errors.animalStatusId}
           >
             {animalStatuses.map((status) => (
               <MenuItem key={status.id} value={status.id}>
@@ -269,16 +207,16 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
             fullWidth
             multiline
             rows={4}
-            value={animal.description}
+            value={editedAnimal.description}
             onChange={handleChange}
           />
           <CardMedia
             component="img"
             height="140"
-            image={animal.photo || 'http://localhost:5164/images/заглушка.png'}
-            alt={animal.name}
+            image={editedAnimal.photo || 'http://localhost:5164/images/заглушка.png'}
+            alt={editedAnimal.name}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginTop: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
             <Input
               type="file"
               inputProps={{ accept: 'image/*' }}
@@ -292,9 +230,16 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
                 component="span"
                 sx={{ borderColor: '#1976d2', color: '#1976d2', '&:hover': { borderColor: '#1565c0', backgroundColor: 'rgba(25, 118, 210, 0.04)' } }}
               >
-                Добавить фото
+                Заменить фото
               </Button>
             </label>
+            <Button
+              variant="outlined"
+              onClick={handleDeletePhoto}
+              sx={{ borderColor: '#d32f2f', color: '#d32f2f', '&:hover': { borderColor: '#b71c1c', backgroundColor: 'rgba(211, 47, 47, 0.04)' } }}
+            >
+              Удалить фото
+            </Button>
           </Box>
         </form>
       </DialogContent>
@@ -303,7 +248,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
           Отмена
         </Button>
         <Button onClick={handleSubmit} color="primary">
-          Добавить
+          Сохранить изменения
         </Button>
       </DialogActions>
       <Snackbar
@@ -319,4 +264,4 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
   );
 };
 
-export default AddAnimalForm;
+export default EditAnimalForm;

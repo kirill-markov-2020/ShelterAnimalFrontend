@@ -18,17 +18,20 @@ import {
 import { useAuth } from '../context/AuthContext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import EditAnimalForm from './EditAnimalForm';
 
 interface AnimalCardProps {
   animal: {
     id: number;
     name: string;
     typeAnimal: {
+      id: number;
       name: string;
     };
     gender: string;
     age: number;
     animalStatus: {
+      id: number;
       name: string;
     };
     description: string;
@@ -36,12 +39,12 @@ interface AnimalCardProps {
   };
   onAdopt?: (animalId: number) => void;
   onDelete?: (animalId: number) => void;
-  onEdit?: (animalId: number) => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete, onEdit }) => {
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) => {
   const { isAuthenticated, userRole } = useAuth();
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [editFormOpen, setEditFormOpen] = React.useState(false);
 
   const handleAdopt = () => {
     if (onAdopt) {
@@ -65,17 +68,19 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete, onEd
   };
 
   const handleEdit = () => {
-    if (onEdit) {
-      onEdit(animal.id);
-    }
+    setEditFormOpen(true);
+  };
+
+  const handleCloseEditForm = () => {
+    setEditFormOpen(false);
   };
 
   return (
     <Card sx={{
       maxWidth: 345,
       margin: 2,
-      border: '2px solid #1976d2', // Синяя обводка
-      borderRadius: '8px' // Скругление углов
+      border: '2px solid #1976d2',
+      borderRadius: '8px'
     }}>
       <CardMedia
         component="img"
@@ -148,6 +153,20 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete, onEd
           </Button>
         </DialogActions>
       </Dialog>
+      <EditAnimalForm
+        open={editFormOpen}
+        onClose={handleCloseEditForm}
+        animal={{
+          id: animal.id,
+          name: animal.name,
+          typeAnimalId: animal.typeAnimal.id,
+          gender: animal.gender,
+          age: animal.age,
+          animalStatusId: animal.animalStatus.id,
+          description: animal.description,
+          photo: animal.photo,
+        }}
+      />
     </Card>
   );
 };
