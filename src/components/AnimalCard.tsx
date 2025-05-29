@@ -1,27 +1,49 @@
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Chip, Button } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Chip,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Box
+} from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import EditAnimalForm from './EditAnimalForm';
 
 interface AnimalCardProps {
   animal: {
     id: number;
     name: string;
     typeAnimal: {
+      id: number;
       name: string;
     };
     gender: string;
     age: number;
     animalStatus: {
+      id: number;
       name: string;
     };
     description: string;
     photo: string;
   };
   onAdopt?: (animalId: number) => void;
+  onDelete?: (animalId: number) => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
-  const { isAuthenticated } = useAuth();
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) => {
+  const { isAuthenticated, userRole } = useAuth();
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const [editFormOpen, setEditFormOpen] = React.useState(false);
 
   const handleAdopt = () => {
     if (onAdopt) {
@@ -29,12 +51,40 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
     }
   };
 
+  const handleDelete = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(animal.id);
+    }
+    setOpenDialog(false);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleEdit = () => {
+    setEditFormOpen(true);
+  };
+
+  const handleCloseEditForm = () => {
+    setEditFormOpen(false);
+  };
+
   return (
-    <Card sx={{ maxWidth: 345, margin: 2 }}>
+    <Card sx={{
+      maxWidth: 345,
+      margin: 2,
+      border: '2px solid #1976d2',
+      borderRadius: '8px'
+    }}>
       <CardMedia
         component="img"
         height="140"
-        image={animal.photo || 'https://via.placeholder.com/300'}
+        image={animal.photo || 'http://localhost:5164/images/заглушка.png'}
         alt={animal.name}
       />
       <CardContent>
@@ -53,13 +103,13 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
         <Chip
           label={animal.animalStatus.name}
           color={
-            animal.animalStatus.name === 'Готов к усыновлению' 
-              ? 'success' 
+            animal.animalStatus.name === 'Готов к усыновлению'
+              ? 'success'
               : 'default'
           }
           sx={{ marginTop: 1 }}
         />
-        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (
+        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (userRole === 'Клиент' || userRole === 'Волонтер') && (
           <Button
             variant="contained"
             color="primary"
@@ -70,7 +120,52 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt }) => {
             Усыновить
           </Button>
         )}
+        {isAuthenticated && userRole === 'Администратор' && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <IconButton aria-label="edit" onClick={handleEdit} sx={{ color: '#1976d2' }}>
+              <EditIcon />
+            </IconButton>
+            <IconButton aria-label="delete" onClick={handleDelete} sx={{ color: '#d32f2f' }}>
+              <DeleteIcon />
+            </IconButton>
+          </Box>
+        )}
       </CardContent>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Подтверждение удаления"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Вы уверены, что хотите удалить это животное?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Отмена
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <EditAnimalForm
+        open={editFormOpen}
+        onClose={handleCloseEditForm}
+        animal={{
+          id: animal.id,
+          name: animal.name,
+          typeAnimalId: animal.typeAnimal.id,
+          gender: animal.gender,
+          age: animal.age,
+          animalStatusId: animal.animalStatus.id,
+          description: animal.description,
+          photo: animal.photo,
+        }}
+      />
     </Card>
   );
 };

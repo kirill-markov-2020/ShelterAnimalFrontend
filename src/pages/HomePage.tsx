@@ -25,7 +25,8 @@ const HomePage: React.FC = () => {
     if (response.data.token) {
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('userLogin', login);
-      window.location.reload(); 
+      localStorage.setItem('userRole', response.data.role);
+      window.location.reload();
     } else {
       setError('Ошибка при входе: не получен токен');
     }
@@ -38,6 +39,7 @@ const HomePage: React.FC = () => {
     console.error('Login error:', err);
   }
 };
+
 
   return (
     <Container sx={{ mt: 4 }}>
