@@ -1,8 +1,10 @@
+// src/components/AnimalList.tsx
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Snackbar, Alert, Button } from '@mui/material';
 import apiClient from '../api/client';
 import AnimalCard from './AnimalCard';
 import { useAuth } from '../context/AuthContext';
+import AddAnimalForm from './AddAnimalForm';
 
 const AnimalList: React.FC = () => {
   const [animals, setAnimals] = useState<any[]>([]);
@@ -10,6 +12,7 @@ const AnimalList: React.FC = () => {
   const [error, setError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [addAnimalFormOpen, setAddAnimalFormOpen] = useState(false);
   const { isAuthenticated, userRole } = useAuth();
 
   useEffect(() => {
@@ -36,12 +39,12 @@ const AnimalList: React.FC = () => {
         return;
       }
 
-      
+      // Отправляем запрос на усыновление
       await apiClient.post('/Adoptions', { animalId });
       setSnackbarMessage('Заявка на усыновление отправлена!');
       setSnackbarOpen(true);
 
-     
+      // Обновляем список животных
       const response = await apiClient.get('/Animals');
       setAnimals(response.data);
     } catch (error) {
@@ -57,7 +60,7 @@ const AnimalList: React.FC = () => {
       setSnackbarMessage('Животное успешно удалено');
       setSnackbarOpen(true);
 
-    
+      // Обновляем список животных
       const response = await apiClient.get('/Animals');
       setAnimals(response.data);
     } catch (error) {
@@ -65,6 +68,14 @@ const AnimalList: React.FC = () => {
       setSnackbarOpen(true);
       console.error(error);
     }
+  };
+
+  const handleOpenAddAnimalForm = () => {
+    setAddAnimalFormOpen(true);
+  };
+
+  const handleCloseAddAnimalForm = () => {
+    setAddAnimalFormOpen(false);
   };
 
   if (loading) {
@@ -77,6 +88,16 @@ const AnimalList: React.FC = () => {
 
   return (
     <>
+      {userRole === 'Администратор' && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenAddAnimalForm}
+          sx={{ margin: 2 }}
+        >
+          Добавить животное
+        </Button>
+      )}
       <Box
         sx={{
           display: 'grid',
@@ -113,6 +134,8 @@ const AnimalList: React.FC = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <AddAnimalForm open={addAnimalFormOpen} onClose={handleCloseAddAnimalForm} />
     </>
   );
 };

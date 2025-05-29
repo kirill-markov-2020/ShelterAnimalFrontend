@@ -1,3 +1,4 @@
+// src/components/AnimalCard.tsx
 import React from 'react';
 import { Card, CardContent, CardMedia, Typography, Chip, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
@@ -51,7 +52,7 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) =>
       <CardMedia
         component="img"
         height="140"
-        image={animal.photo || 'https://via.placeholder.com/300'}
+        image={animal.photo || 'http://localhost:5164/images/заглушка.png'}
         alt={animal.name}
       />
       <CardContent>
