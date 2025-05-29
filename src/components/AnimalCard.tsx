@@ -1,7 +1,23 @@
 // src/components/AnimalCard.tsx
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Chip, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Chip,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Box
+} from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface AnimalCardProps {
   animal: {
@@ -20,9 +36,10 @@ interface AnimalCardProps {
   };
   onAdopt?: (animalId: number) => void;
   onDelete?: (animalId: number) => void;
+  onEdit?: (animalId: number) => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) => {
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete, onEdit }) => {
   const { isAuthenticated, userRole } = useAuth();
   const [openDialog, setOpenDialog] = React.useState(false);
 
@@ -47,8 +64,19 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) =>
     setOpenDialog(false);
   };
 
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(animal.id);
+    }
+  };
+
   return (
-    <Card sx={{ maxWidth: 345, margin: 2 }}>
+    <Card sx={{
+      maxWidth: 345,
+      margin: 2,
+      border: '2px solid #1976d2', // Синяя обводка
+      borderRadius: '8px' // Скругление углов
+    }}>
       <CardMedia
         component="img"
         height="140"
@@ -89,15 +117,14 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) =>
           </Button>
         )}
         {isAuthenticated && userRole === 'Администратор' && (
-          <Button
-            variant="contained"
-            color="error"
-            fullWidth
-            sx={{ marginTop: 2 }}
-            onClick={handleDelete}
-          >
-            Удалить
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <IconButton aria-label="edit" onClick={handleEdit} sx={{ color: '#1976d2' }}>
+              <EditIcon />
+            </IconButton>
+            <IconButton aria-label="delete" onClick={handleDelete} sx={{ color: '#d32f2f' }}>
+              <DeleteIcon />
+            </IconButton>
+          </Box>
         )}
       </CardContent>
       <Dialog
