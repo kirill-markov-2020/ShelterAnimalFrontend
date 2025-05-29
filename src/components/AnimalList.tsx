@@ -1,4 +1,3 @@
-// src/components/AnimalList.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Snackbar, Alert, Button } from '@mui/material';
 import apiClient from '../api/client';
@@ -39,12 +38,10 @@ const AnimalList: React.FC = () => {
         return;
       }
 
-      // Отправляем запрос на усыновление
       await apiClient.post('/Adoptions', { animalId });
       setSnackbarMessage('Заявка на усыновление отправлена!');
       setSnackbarOpen(true);
 
-      // Обновляем список животных
       const response = await apiClient.get('/Animals');
       setAnimals(response.data);
     } catch (error) {
@@ -60,7 +57,6 @@ const AnimalList: React.FC = () => {
       setSnackbarMessage('Животное успешно удалено');
       setSnackbarOpen(true);
 
-      // Обновляем список животных
       const response = await apiClient.get('/Animals');
       setAnimals(response.data);
     } catch (error) {
@@ -79,7 +75,6 @@ const AnimalList: React.FC = () => {
   };
 
   const handleAnimalAdded = () => {
-    // Обновляем список животных после добавления
     const fetchAnimals = async () => {
       try {
         const response = await apiClient.get('/Animals');

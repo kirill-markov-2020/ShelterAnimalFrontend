@@ -1,4 +1,3 @@
-// src/components/AnimalCard.tsx
 import React from 'react';
 import {
   Card,

@@ -1,4 +1,3 @@
-// src/components/EditAnimalForm.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -95,7 +94,6 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Здесь будет логика отправки измененных данных на сервер
     console.log(editedAnimal);
     onClose();
   };

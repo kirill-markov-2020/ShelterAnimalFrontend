@@ -1,4 +1,3 @@
-// src/components/AddAnimalForm.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
