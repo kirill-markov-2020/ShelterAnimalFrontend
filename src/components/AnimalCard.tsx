@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EditAnimalForm from './EditAnimalForm';
+import AnimalDetailsDialog from './AnimalDetailsDialog';
 import config from '../config';
 
 interface AnimalCardProps {
@@ -39,26 +40,24 @@ interface AnimalCardProps {
   };
   onAdopt?: (animalId: number) => void;
   onDelete?: (animalId: number) => void;
-  onUpdate?: () => void; // Добавляем пропс для обновления списка
+  onUpdate?: () => void;
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ 
-  animal, 
-  onAdopt, 
-  onDelete,
-  onUpdate 
-}) => {
+const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete, onUpdate }) => {
   const { isAuthenticated, userRole } = useAuth();
-  const [openDialog, setOpenDialog] = React.useState(false);
-  const [editFormOpen, setEditFormOpen] = React.useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
-  const handleAdopt = () => {
+  const handleAdopt = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onAdopt) {
       onAdopt(animal.id);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setOpenDialog(true);
   };
 
@@ -73,7 +72,8 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
     setOpenDialog(false);
   };
 
-  const handleEdit = () => {
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditFormOpen(true);
   };
 
@@ -81,70 +81,85 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
     setEditFormOpen(false);
   };
 
+  const handleOpenDetailsDialog = () => {
+    setDetailsDialogOpen(true);
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setDetailsDialogOpen(false);
+  };
+
   return (
-    <Card sx={{
-      maxWidth: 345,
-      margin: 2,
-      border: '2px solid #1976d2',
-      borderRadius: '8px'
-    }}>
-      <CardMedia
-        component="img"
-        height="140"
-        image={animal.photo || `${config.apiBaseUrl}${config.defaultImagePath}`}
-        alt={animal.name}
-      />
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
-          {animal.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Вид: {animal.typeAnimal.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Пол: {animal.gender}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Возраст: {animal.age} лет
-        </Typography>
-        <Chip
-          label={animal.animalStatus.name}
-          color={
-            animal.animalStatus.name === 'Готов к усыновлению'
-              ? 'success'
-              : 'default'
-          }
-          sx={{ marginTop: 1 }}
+    <>
+      <Card
+        sx={{
+          maxWidth: 345,
+          margin: 2,
+          border: '2px solid #1976d2',
+          borderRadius: '8px',
+          cursor: 'pointer'
+        }}
+        onClick={handleOpenDetailsDialog}
+      >
+        <CardMedia
+          component="img"
+          height="140"
+          image={animal.photo || `${config.apiBaseUrl}${config.defaultImagePath}`}
+          alt={animal.name}
         />
-        {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (userRole === 'Клиент' || userRole === 'Волонтер') && (
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ marginTop: 2 }}
-            onClick={handleAdopt}
-          >
-            Усыновить
-          </Button>
-        )}
-        {isAuthenticated && userRole === 'Администратор' && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-            <IconButton aria-label="edit" onClick={handleEdit} sx={{ color: '#1976d2' }}>
-              <EditIcon />
-            </IconButton>
-            <IconButton aria-label="delete" onClick={handleDelete} sx={{ color: '#d32f2f' }}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        )}
-      </CardContent>
+        <CardContent>
+          <Typography gutterBottom variant="h5" component="div">
+            {animal.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Вид: {animal.typeAnimal.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Пол: {animal.gender}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Возраст: {animal.age} лет
+          </Typography>
+          <Chip
+            label={animal.animalStatus.name}
+            color={
+              animal.animalStatus.name === 'Готов к усыновлению'
+                ? 'success'
+                : 'default'
+            }
+            sx={{ marginTop: 1 }}
+          />
+          {isAuthenticated && animal.animalStatus.name === 'Готов к усыновлению' && (userRole === 'Клиент' || userRole === 'Волонтер') && (
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ marginTop: 2 }}
+              onClick={handleAdopt}
+            >
+              Усыновить
+            </Button>
+          )}
+          {isAuthenticated && userRole === 'Администратор' && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+              <IconButton aria-label="edit" onClick={handleEdit} sx={{ color: '#1976d2' }}>
+                <EditIcon />
+              </IconButton>
+              <IconButton aria-label="delete" onClick={handleDelete} sx={{ color: '#d32f2f' }}>
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Подтверждение удаления"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">Подтверждение удаления</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             Вы уверены, что хотите удалить это животное?
@@ -159,6 +174,7 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
       <EditAnimalForm
         open={editFormOpen}
         onClose={handleCloseEditForm}
@@ -172,9 +188,15 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
           description: animal.description,
           photo: animal.photo,
         }}
-        onAnimalUpdated={onUpdate} // Передаем пропс в EditAnimalForm
+        onAnimalUpdated={onUpdate}
       />
-    </Card>
+
+      <AnimalDetailsDialog
+        open={detailsDialogOpen}
+        onClose={handleCloseDetailsDialog}
+        animal={animal}
+      />
+    </>
   );
 };
 
