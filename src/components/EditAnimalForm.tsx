@@ -17,6 +17,7 @@ import {
   Input
 } from '@mui/material';
 import apiClient from '../api/client';
+import config from '../config';
 
 interface EditAnimalFormProps {
   open: boolean;
@@ -87,9 +88,12 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
   };
 
   const handleDeletePhoto = () => {
-    setFile(null);
-    setEditedAnimal(prev => ({ ...prev, photo: 'http://localhost:5164/images/заглушка.png' }));
-  };
+  setFile(null);
+  setEditedAnimal(prev => ({ 
+    ...prev, 
+    photo: `${config.apiBaseUrl}${config.defaultImagePath}` 
+  }));
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,7 +215,7 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
           <CardMedia
             component="img"
             height="140"
-            image={editedAnimal.photo || 'http://localhost:5164/images/заглушка.png'}
+            image={editedAnimal.photo || `${config.apiBaseUrl}${config.defaultImagePath}`}
             alt={editedAnimal.name}
           />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>

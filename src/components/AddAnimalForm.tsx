@@ -17,6 +17,7 @@ import {
   Input
 } from '@mui/material';
 import apiClient from '../api/client';
+import config from '../config';
 
 interface AddAnimalFormProps {
   open: boolean;
@@ -121,7 +122,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
     }
 
     try {
-      let photoPath = 'http://localhost:5164/images/заглушка.png';
+      let photoPath = `${config.apiBaseUrl}${config.defaultImagePath}`;
 
       if (file) {
         const formData = new FormData();
@@ -133,7 +134,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ open, onClose, onAnimalAd
           },
         });
 
-        photoPath = `http://localhost:5164${uploadResponse.data.filePath}`;
+        photoPath = `${config.apiBaseUrl}${uploadResponse.data.filePath}`;
       }
 
       const animalData = {

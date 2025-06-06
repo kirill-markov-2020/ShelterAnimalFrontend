@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EditAnimalForm from './EditAnimalForm';
+import config from '../config';
 
 interface AnimalCardProps {
   animal: {
@@ -84,7 +85,7 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) =>
       <CardMedia
         component="img"
         height="140"
-        image={animal.photo || 'http://localhost:5164/images/заглушка.png'}
+        image={animal.photo || `${config.apiBaseUrl}${config.defaultImagePath}`}
         alt={animal.name}
       />
       <CardContent>
