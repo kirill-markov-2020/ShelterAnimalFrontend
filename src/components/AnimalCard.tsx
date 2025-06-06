@@ -39,9 +39,15 @@ interface AnimalCardProps {
   };
   onAdopt?: (animalId: number) => void;
   onDelete?: (animalId: number) => void;
+  onUpdate?: () => void; // Добавляем пропс для обновления списка
 }
 
-const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) => {
+const AnimalCard: React.FC<AnimalCardProps> = ({ 
+  animal, 
+  onAdopt, 
+  onDelete,
+  onUpdate 
+}) => {
   const { isAuthenticated, userRole } = useAuth();
   const [openDialog, setOpenDialog] = React.useState(false);
   const [editFormOpen, setEditFormOpen] = React.useState(false);
@@ -166,6 +172,7 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onAdopt, onDelete }) =>
           description: animal.description,
           photo: animal.photo,
         }}
+        onAnimalUpdated={onUpdate} // Передаем пропс в EditAnimalForm
       />
     </Card>
   );

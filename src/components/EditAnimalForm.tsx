@@ -32,19 +32,17 @@ interface EditAnimalFormProps {
     description: string;
     photo: string;
   };
+  onAnimalUpdated?: () => void;
 }
 
-const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }) => {
-  const [editedAnimal, setEditedAnimal] = useState({
-    name: animal.name,
-    typeAnimalId: animal.typeAnimalId,
-    gender: animal.gender,
-    age: animal.age,
-    animalStatusId: animal.animalStatusId,
-    description: animal.description,
-    photo: animal.photo,
-  });
-
+const EditAnimalForm: React.FC<EditAnimalFormProps> = ({
+  open,
+  onClose,
+  animal,
+  onAnimalUpdated
+}) => {
+  const [originalAnimal] = useState(animal);
+  const [editedAnimal, setEditedAnimal] = useState({ ...animal });
   const [typeAnimals, setTypeAnimals] = useState<any[]>([]);
   const [animalStatuses, setAnimalStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,22 +81,97 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditedAnimal(prev => ({
+          ...prev,
+          photo: event.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(selectedFile);
     }
   };
 
   const handleDeletePhoto = () => {
-  setFile(null);
-  setEditedAnimal(prev => ({ 
-    ...prev, 
-    photo: `${config.apiBaseUrl}${config.defaultImagePath}` 
-  }));
-};
+    setFile(null);
+    setEditedAnimal(prev => ({
+      ...prev,
+      photo: `${config.apiBaseUrl}${config.defaultImagePath}`
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!editedAnimal.name.trim()) newErrors.name = 'Имя обязательно';
+    if (!editedAnimal.typeAnimalId) newErrors.typeAnimalId = 'Тип животного обязателен';
+    if (!editedAnimal.animalStatusId) newErrors.animalStatusId = 'Статус животного обязателен';
+
+    if (editedAnimal.age < 0 || editedAnimal.age > 100) {
+      newErrors.age = 'Возраст должен быть от 0 до 100';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log(editedAnimal);
+    if (!validateForm()) return;
+
+    try {
+      let photoPath = editedAnimal.photo;
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadResponse = await apiClient.post('/FileUpload/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        photoPath = `${config.apiBaseUrl}${uploadResponse.data.filePath}`;
+      }
+
+      const animalData = {
+        ...editedAnimal,
+        photo: photoPath,
+        typeAnimal: {
+          id: editedAnimal.typeAnimalId,
+          name: typeAnimals.find(t => t.id === editedAnimal.typeAnimalId)?.name || ''
+        },
+        animalStatus: {
+          id: editedAnimal.animalStatusId,
+          name: animalStatuses.find(s => s.id === editedAnimal.animalStatusId)?.name || ''
+        }
+      };
+
+      await apiClient.put(`/Animals/${editedAnimal.id}`, animalData);
+
+      setSnackbarMessage('Данные животного успешно обновлены!');
+      setSnackbarOpen(true);
+
+      if (onAnimalUpdated) {
+        onAnimalUpdated();
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('Error updating animal:', err);
+      setSnackbarMessage('Ошибка при обновлении данных животного');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleClose = () => {
+    setEditedAnimal(originalAnimal);
+    setFile(null);
     onClose();
   };
 
@@ -111,7 +184,7 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>Редактировать данные о животном</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
@@ -124,6 +197,8 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
             fullWidth
             value={editedAnimal.name}
             onChange={handleChange}
+            error={!!errors.name}
+            helperText={errors.name}
           />
           <TextField
             margin="dense"
@@ -133,6 +208,8 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
             fullWidth
             value={editedAnimal.typeAnimalId}
             onChange={handleChange}
+            error={!!errors.typeAnimalId}
+            helperText={errors.typeAnimalId}
           >
             {typeAnimals.map((type) => (
               <MenuItem key={type.id} value={type.id}>
@@ -185,6 +262,12 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
             fullWidth
             value={editedAnimal.age}
             onChange={handleChange}
+            error={!!errors.age}
+            helperText={errors.age}
+            inputProps={{
+              min: 0,
+              max: 100
+            }}
           />
           <TextField
             margin="dense"
@@ -194,6 +277,8 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
             fullWidth
             value={editedAnimal.animalStatusId}
             onChange={handleChange}
+            error={!!errors.animalStatusId}
+            helperText={errors.animalStatusId}
           >
             {animalStatuses.map((status) => (
               <MenuItem key={status.id} value={status.id}>
@@ -246,7 +331,7 @@ const EditAnimalForm: React.FC<EditAnimalFormProps> = ({ open, onClose, animal }
         </form>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button onClick={handleClose} color="primary">
           Отмена
         </Button>
         <Button onClick={handleSubmit} color="primary">

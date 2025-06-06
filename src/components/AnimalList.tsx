@@ -65,7 +65,19 @@ const AnimalList: React.FC = () => {
       console.error(error);
     }
   };
+  const handleAnimalUpdated = () => {
+  const fetchAnimals = async () => {
+    try {
+      const response = await apiClient.get('/Animals');
+      setAnimals(response.data);
+    } catch (err) {
+      setError('Ошибка при загрузке данных о животных');
+      console.error(err);
+    }
+  };
 
+  fetchAnimals();
+};
   const handleOpenAddAnimalForm = () => {
     setAddAnimalFormOpen(true);
   };
@@ -127,6 +139,7 @@ const AnimalList: React.FC = () => {
             animal={animal}
             onAdopt={handleAdopt}
             onDelete={userRole === 'Администратор' ? handleDelete : undefined}
+            onUpdate={handleAnimalUpdated}
           />
         ))}
       </Box>
