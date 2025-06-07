@@ -7,7 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 const Navbar: React.FC = () => {
   const location = useLocation();
   const theme = useTheme();
-  const { isAuthenticated, userLogin, logout } = useAuth();
+  const { isAuthenticated, userLogin, userRole, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,8 +75,33 @@ const Navbar: React.FC = () => {
           </Button>
         </Zoom>
 
+        {(userRole === 'Сотрудник' || userRole === 'Администратор') && (
+          <>
+            <Zoom in={true} style={{ transitionDelay: '400ms' }}>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/active-applications"
+                sx={{
+                  backgroundColor: isActive('/active-applications') ? theme.palette.background.paper : 'inherit',
+                  color: isActive('/active-applications') ? theme.palette.text.primary : 'inherit',
+                  '&:hover': {
+                    backgroundColor: isActive('/active-applications') ? theme.palette.action.selected : theme.palette.action.hover,
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'transform 0.3s ease',
+                }}
+              >
+                Активные заявки
+              </Button>
+            </Zoom>
+
+            
+          </>
+        )}
+
         {!isAuthenticated ? (
-          <Zoom in={true} style={{ transitionDelay: '400ms' }}>
+          <Zoom in={true} style={{ transitionDelay: '600ms' }}>
             <Button
               component={Link}
               to="/register"
